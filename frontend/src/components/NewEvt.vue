@@ -40,7 +40,7 @@
 <script>
 import L from 'leaflet'
 import API from '@/api'
-
+import $ from 'jquery'
 export default {
   name: 'NewEvt',
   data () {
@@ -81,7 +81,8 @@ export default {
         }
       )
       this.tileLayer.addTo(this.map)
-      var marker = new L.marker([44.42765069807356, 26.10252857208252], {draggable: 'true'})
+      /* eslint-disable new-cap */
+      var marker = new L.marker([44.42765069807356, 26.10252857208252], { draggable: 'true' })
       var thisTmp = this
       marker.on('dragend', function (event) {
         var position = marker.getLatLng()
