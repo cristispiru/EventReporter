@@ -21,7 +21,7 @@ router.get('/', function(req, res, next) {
 
 // event routes
 router.get('/event', (req, res) => {
-    Event.fetchAll({withRelated: 'alert'})
+    Event.where('reported_count', '<', 5).fetchAll({withRelated: ['alert', 'user']})
         .then((events) => {
             var toSend = []
             events.forEach(function(event) {
@@ -34,19 +34,19 @@ router.get('/event', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
 router.get('/event/:minLongitude/:maxLongitude/:minLatitude/:maxLatitude', (req, res) => {
     Event.forge().query(function(qb){
-        qb.where('latitude', '<=', req.params.maxLatitude).andWhere('latitude', '>=', req.params.minLatitude).andWhere('longitude', '<=', req.params.maxLongitude).andWhere('latitude', '>=', req.params.minLongitude)
-    }).fetchAll({withRelated: 'alert'})
+        qb.where('latitude', '<=', req.params.maxLatitude).andWhere('latitude', '>=', req.params.minLatitude).andWhere('longitude', '<=', req.params.maxLongitude).andWhere('latitude', '>=', req.params.minLongitude).andWhere('reported_count', '<', 5)
+    }).fetchAll({withRelated: ['alert', 'user']})
         .then((events) => {
             var toSend = []
             events.forEach(function(event) {
-                console.log(event)
                 toSend.push(event.fullInfo())
             })
             res.send({msg: 'Nearby Event List', list: toSend})
@@ -56,14 +56,15 @@ router.get('/event/:minLongitude/:maxLongitude/:minLatitude/:maxLatitude', (req,
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
 router.get('/event/:event_id', (req, res) => {
     var toSend
-    Event.forge({id: req.params.event_id}).fetch({withRelated: 'alert'})
+    Event.forge({id: req.params.event_id}).fetch({withRelated: ['alert', 'user']})
         .then((event) => {
             if (!event) {
                 throw GeneralError.create('No event with that id')
@@ -83,8 +84,44 @@ router.get('/event/:event_id', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
+        })
+})
+
+router.patch('/event/:event_id/report', (req, res) => {
+    let userUpdate
+    Event.forge({id: req.params.event_id}).fetch({withRelated: ['alert', 'user']})
+        .then((event) => {
+            if (!event) {
+                throw GeneralError.create('No event with that id')
+            }
+            userUpdate = event.get('reported_count') === 4
+            const reportedCount = event.get('reported_count') + 1
+            return event.save({reported_count: reportedCount}, {method: 'update'})
+        })
+        .then((event) => {
+            if (!event) {
+                throw GeneralError.create('Event not updated')
+            }
+            return User.forge({id: event.get('user_id')}).fetch()
+        })
+        .then((user) => {
+            const reportedCount = user.get('reported_count') + 1
+            if (userUpdate) {
+                user.save({reported_count: reportedCount}, {method: 'update'})
+            }
+            res.send({msg: 'Event reported'})
+        })
+        .catch((reason) => {
+            console.log('Reporting event failed!')
+            console.log(reason)
+            if (reason.send_message) {
+                res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
+            }
         })
 })
 // event routes end
@@ -103,8 +140,9 @@ router.get('/user/:user_email', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -113,6 +151,7 @@ router.post('/user', (req, res) => {
     req.checkBody('email', 'email param is missing').notEmpty()
     req.checkBody('first_name', 'first_name param is missing').notEmpty()
     req.checkBody('last_name', 'last_name param is missing').notEmpty()
+    req.checkBody('password', 'password param is missing').notEmpty()
     req.getValidationResult()
         .then((result) => {
             if (!result.isEmpty()) {
@@ -136,6 +175,7 @@ router.post('/user', (req, res) => {
             info.first_name = req.body.first_name
             info.last_name = req.body.last_name
             info.type_id = type_id
+            info.password = req.body.password
             if (req.body.phone) {
                 info.phone = req.body.phone
             }
@@ -153,8 +193,37 @@ router.post('/user', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
+        })
+})
+
+router.post('/login', (req, res) => {
+    req.checkBody('email', 'email param is missing').notEmpty()
+    req.checkBody('password', 'email param is missing').notEmpty()
+    req.getValidationResult()
+        .then((result) => {
+            if (!result.isEmpty()) {
+                throw GeneralError.create(result.array())
+            }
+            return User.forge({email: req.body.email, password: req.body.password}).fetch({withRelated: 'type'})
+        })
+        .then((user) => {
+            if (!user) {
+                throw GeneralError.create('User does not exist')
+            }
+            const token = TokenUtils.generate(user.related("type").get("name"), user.get('id'))
+            res.send({msg: 'Login successful', token})
+        })
+        .catch((reason) => {
+            console.log('Login user failed!')
+
+            if (reason.send_message) {
+                res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
+            }
         })
 })
 // user routes end
@@ -174,8 +243,9 @@ router.get('/tag', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -192,8 +262,9 @@ router.get('/tag/:tag_name', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 // tag routes end
@@ -213,8 +284,9 @@ router.get('/alert/codes', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 // alert routes end

@@ -38,13 +38,16 @@ router.post('/event', (req, res) => {
                 throw GeneralError.create(result.array())
             }
             alertMessage = req.body.name + ': ' + req.body.description + '. Longitude: ' + req.body.longitude +' , Latitude: ' + req.body.latitude
-            return UserType.forge({name: 'admin'}).fetch()
+            return User.forge({id: req.jwt.user_id}).fetch()
         })
-        .then((type) => {
-            if (!type) {
-                throw GeneralError.create('User Type is invalid')
+        .then((user) => {
+            if (!user) {
+                throw GeneralError.create('No user with that id')
             }
-            info.type_id = type.get('id')
+            if (user.get('reported_count') >= 3) {
+                throw GeneralError.create('Your account has been banned')
+            }
+            info.user_id = user.get('id')
             return AlertCode.forge({name: req.body.name}).fetch()
         })
         .then((alertCode) => {
@@ -62,7 +65,7 @@ router.post('/event', (req, res) => {
                             message = 'A similar event has already been notified in the area'
                             return trx.raw('SELECT 1 + 1 AS sanity')
                         } else {
-                            return trx.raw("INSERT INTO events (`desc`, image_url, longitude, latitude, alert_code_id) VALUES ( '" + req.body.description + "', '" + req.body.image + "', " + parseFloat(req.body.longitude).toFixed(3) + ", " + parseFloat(req.body.latitude).toFixed(3) + ", " + info.alertId + ")")
+                            return trx.raw("INSERT INTO events (`desc`, image_url, longitude, latitude, alert_code_id, user_id) VALUES ( '" + req.body.description + "', '" + req.body.image + "', " + parseFloat(req.body.longitude).toFixed(3) + ", " + parseFloat(req.body.latitude).toFixed(3) + ", " + info.alertId + ", " + info.user_id + " )")
                         }
                     })
                     .then(newEvent => {
@@ -82,13 +85,6 @@ router.post('/event', (req, res) => {
         })
         .then((result) => {
             if (status === 0) {
-                return User.fetchAll()
-            } else {
-                return User.where({type_id: info.type_id}).fetchAll()
-            }
-        })
-        .then((users) => {
-            if (status === 0) {
                 res.send({status: 0, msg: message})
             } else {
                 res.send({status: 1, msg: 'Event Added', eventId: info.event_id})
@@ -99,13 +95,14 @@ router.post('/event', (req, res) => {
             console.log(reason)
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
 router.post('/event/:event_id/tag', (req, res) => {
-    Event.forge({id: req.params.event_id}).fetch()
+    Event.forge({id: req.params.event_id, user_id: req.jwt.user_id}).fetch()
         .then((event) => {
             if (!event) {
                 throw GeneralError.create('No event with that id')
@@ -136,8 +133,9 @@ router.post('/event/:event_id/tag', (req, res) => {
             console.log(reason)
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 // event routes end
@@ -169,8 +167,9 @@ router.post('/tag', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -201,8 +200,9 @@ router.patch('/tag', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -226,8 +226,9 @@ router.delete('/tag', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 // tag routes end
@@ -259,8 +260,9 @@ router.post('/alert/codes', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -291,8 +293,9 @@ router.patch('/alert/codes', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 
@@ -316,8 +319,9 @@ router.delete('/alert/codes', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 // alert code routes end
@@ -328,10 +332,14 @@ router.post('/user/admin', (req, res) => {
     req.checkBody('email', 'email param is missing').notEmpty()
     req.checkBody('first_name', 'first_name param is missing').notEmpty()
     req.checkBody('last_name', 'last_name param is missing').notEmpty()
+    req.checkBody('password', 'password param is missing').notEmpty()
     req.getValidationResult()
         .then((result) => {
             if (!result.isEmpty()) {
                 throw GeneralError.create(result.array())
+            }
+            if (req.jwt.role !== 'admin') {
+                throw GeneralError.create('Not authorized')
             }
             return UserType.forge({name: 'admin'}).fetch()
         })
@@ -368,8 +376,9 @@ router.post('/user/admin', (req, res) => {
 
             if (reason.send_message) {
                 res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
             }
-            res.send({'errors': [{'msg': reason}] })
         })
 })
 //user routes end
