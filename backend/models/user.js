@@ -13,6 +13,7 @@ var User = connection.orm.Model.extend({
         ret.timestamp = this.get("created_at")
         ret.phone = this.get("phone")
         ret.email = this.get("email")
+        ret.reported_count = this.get('reported_count')
 
         return ret
     }
