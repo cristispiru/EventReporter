@@ -5,7 +5,7 @@ function generate (role, user_id, exp_time) {
 
     // generate a new token
     var payload = {}
-    payload.roles = role
+    payload.role = role
     payload.user_id = user_id
 
     var options = {}
