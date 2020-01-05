@@ -12,7 +12,7 @@
       </b-navbar-nav>
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <b-button variant="dark" size="sm" class="my-2 my-sm-0"
+        <b-button variant="dark" size="sm" class="my-2 my-sm-0" @click="logout"
           >Logout</b-button
         >
       </b-navbar-nav>
@@ -32,6 +32,12 @@ export default {
   components: {
     Map,
     NewEvt
+  },
+  methods: {
+    logout () {
+      this.$store.dispatch('logout')
+      this.$route.push({ name: 'Login' })
+    }
   }
 }
 </script>

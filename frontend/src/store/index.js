@@ -19,7 +19,7 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    login: ({ commit, dispatch }, { jwt }) => {
+    loginOrSignUp: ({ commit, dispatch }, { jwt }) => {
       commit('SET_JWT_TOKEN', jwt)
       axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`
     },
@@ -28,7 +28,9 @@ export default new Vuex.Store({
     }
   },
   getters: {
-
+    isLoggedIn: state => {
+      return state.jwt
+    }
   },
   modules: {
   }

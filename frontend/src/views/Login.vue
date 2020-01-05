@@ -5,13 +5,15 @@
       class="input-form"
       :type="'text'"
       v-model="email"
+      placeholder="Email"
     ></b-form-input>
     <b-form-input
       class="input-form"
       :type="'password'"
       v-model="password"
+      placeholder="Password"
     ></b-form-input>
-    <b-button variant="success">Enter</b-button>
+    <b-button variant="success" @click="login">Enter</b-button>
     <p>
       Don't have an account ? Go to
       <router-link to="/signup">Sign up</router-link> page
@@ -20,6 +22,7 @@
 </template>
 
 <script>
+import auth from '@/services/auth.service.js'
 
 export default {
   name: 'login',
@@ -30,6 +33,15 @@ export default {
     }
   },
   methods: {
+    login () {
+      let simpleCredentials = {
+        email: this.email,
+        password: this.password
+      }
+      let response = auth.signUp(simpleCredentials)
+      this.$store.dispatch('loginOrSignUp', { response })
+      this.$router.push({ name: 'Home' })
+    }
   }
 }
 </script>
