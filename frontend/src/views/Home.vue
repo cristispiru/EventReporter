@@ -1,18 +1,40 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <b-navbar toggleable="lg" type="dark" variant="dark">
+      <b-navbar-brand href="#">Event Reporter</b-navbar-brand>
+      <b-navbar-nav>
+        <b-button
+          variant="dark"
+          size="sm"
+          class="my-2 my-sm-0"
+          >New Event</b-button
+        >
+      </b-navbar-nav>
+      <!-- Right aligned nav items -->
+      <b-navbar-nav class="ml-auto">
+        <b-button variant="dark" size="sm" class="my-2 my-sm-0"
+          >Logout</b-button
+        >
+      </b-navbar-nav>
+    </b-navbar>
+    <Map />
+    <NewEvt />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import Map from '@/components/Map.vue'
+import NewEvt from '@/components/NewEvt.vue'
 
 export default {
   name: 'home',
   components: {
-    HelloWorld
+    Map,
+    NewEvt
   }
 }
 </script>
+
+<style scoped>
+</style>

@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Map from '@/components/Map'
-import NewEvt from '@/components/NewEvt'
+import Home from '../views/Home.vue'
+import Login from '../views/Login.vue'
+import SignUp from '../views/SignUp.vue'
 
 Vue.use(Router)
 
@@ -11,13 +12,18 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Map',
-      component: Map
+      name: 'Home',
+      component: Home
     },
     {
-      path: '/new',
-      name: 'NewEvt',
-      component: NewEvt
+      path: '/login',
+      name: 'Login',
+      component: Login
+    },
+    {
+      path: '/signup',
+      name: 'SignUp',
+      component: SignUp
     }
   ]
 })
