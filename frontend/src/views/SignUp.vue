@@ -55,16 +55,18 @@ export default {
     }
   },
   methods: {
-    signUp () {
+    async signUp () {
       let complexCredentials = {
-        firstName: this.firstName,
-        lastName: this.lastName,
+        first_name: this.firstName,
+        last_name: this.lastName,
         email: this.email,
         password: this.password,
         number: this.number
       }
-      let response = auth.signUp(complexCredentials)
-      this.$store.dispatch('loginOrSignUp', { response })
+      console.log(complexCredentials)
+      let response = await auth.signUp(complexCredentials)
+      let token = response.token
+      this.$store.dispatch('loginOrSignUp', { token })
       this.$router.push({ name: 'Home' })
     }
   }

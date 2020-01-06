@@ -21,7 +21,7 @@ export default {
       .catch(error => console.log(error))
     return response.data
   },
-  async newEventt (event) {
+  async newEvent (event) {
     const response = await axios
       .post(url + 'event/', event)
       .catch(error => console.log(error))
@@ -33,21 +33,33 @@ export default {
       .catch(error => console.log(error))
     return response.data
   },
+  async getEventsNearby (minLongitude, maxLongitude, minLatitude, maxLatitude) {
+    const response = await axios
+      .get(url + `event/${minLongitude}/${maxLongitude}/${minLatitude}/${maxLatitude}`)
+      .catch(error => console.log(error))
+    return response.data
+  },
   async getEventDetails (id) {
     const response = await axios
-      .get(url + 'event/' + id)
+      .get(url + `event/${id}`)
       .catch(error => console.log(error))
     return response.data
   },
   async reportEvent (id) {
     const response = await axios
-      .patch(url + 'event/' + id + '/report/')
+      .patch(url + `event/${id}/report/`)
       .catch(error => console.log(error))
     return response.data
   },
   async getUserDetails (email) {
     const response = await axios
-      .get(url + 'event/' + email)
+      .get(url + `event/${email}`)
+      .catch(error => console.log(error))
+    return response.data
+  },
+  async getAlertCodes () {
+    const response = await axios
+      .get(url + 'alert/codes/')
       .catch(error => console.log(error))
     return response.data
   }

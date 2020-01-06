@@ -15,7 +15,7 @@ Vue.config.productionTip = false
 Vue.use(VueResource)
 Vue.use(BootstrapVue)
 Vue.http.options.root = process.env.VUE_APP_API_BASE
-axios.defaults.headers.common['Authorization'] = `Bearer ${store.state.jwt}`
+axios.defaults.headers.common['Authorization'] = `${store.state.jwt}`
 
 new Vue({
   router,

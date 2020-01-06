@@ -6,7 +6,7 @@ import createPersistedState from 'vuex-persistedstate'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  plugins: [createPersistedState],
+  plugins: [createPersistedState()],
   state: {
     jwt: ''
   },
@@ -19,12 +19,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    loginOrSignUp: ({ commit, dispatch }, { jwt }) => {
-      commit('SET_JWT_TOKEN', jwt)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`
+    loginOrSignUp: ({ commit, dispatch }, jwt) => {
+      commit('SET_JWT_TOKEN', jwt.token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${jwt.token}`
     },
     logout: ({ commit }) => {
-      commit('RESET', '')
+      commit('RESET_JWT_TOKEN', '')
     }
   },
   getters: {

@@ -33,13 +33,14 @@ export default {
     }
   },
   methods: {
-    login () {
+    async login () {
       let simpleCredentials = {
         email: this.email,
         password: this.password
       }
-      let response = auth.signUp(simpleCredentials)
-      this.$store.dispatch('loginOrSignUp', { response })
+      let response = await auth.login(simpleCredentials)
+      let token = response.token
+      this.$store.dispatch('loginOrSignUp', { token })
       this.$router.push({ name: 'Home' })
     }
   }

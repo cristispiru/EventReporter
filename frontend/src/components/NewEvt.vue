@@ -39,8 +39,9 @@
 
 <script>
 import L from 'leaflet'
-import API from '@/api'
 import $ from 'jquery'
+import auth from '@/services/auth.service.js'
+
 export default {
   name: 'NewEvt',
   data () {
@@ -64,7 +65,7 @@ export default {
   },
   mounted () {
     this.initMapSelect()
-    this.getAlerts()
+    this.getAlertCodes()
   },
   methods: {
     initMapSelect () {
@@ -113,70 +114,8 @@ export default {
         reader.readAsDataURL(input.files[0])
       }
     },
-    getAlerts () {
-      API.GetAlerts()
-        .then(response => {
-          var i
-          for (i = 0; i < response.length; i++) {
-            this.alerts.push(response[i])
-          }
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    getTags () {
-      API.GetTags()
-        .then(response => {
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    addAlert () {
-      API.AddAlert(this.alertName)
-        .then(response => {
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    addTags () {
-      this.tags.forEach((tag) => {
-        this.addTagToEvent(tag)
-      })
-    },
-    addEvent () {
-      API.AddEvent(
-        this.alertName,
-        this.event.description,
-        this.event.longitude,
-        this.event.latitude,
-        this.event.image
-      )
-        .then(response => {
-          if (response.status === 1) {
-            this.event.id = response.eventId
-            this.addTags()
-            alert('Eveniment adăugat cu succes.')
-          } else {
-            alert('Un Eveniment asemanator a fost deja semnalat')
-          }
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    addTagToEvent (tagName) {
-      API.AddTagToEvent(this.event.id, tagName)
-        .then(response => {
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
     formValidation (e) {
-      if (this.alertName && this.event.description && this.event.longitude !== 0 && this.event.latitude !== 0 && this.event.image.length !== 0) {
+      if (this.alertName && this.event.description && this.event.longitude !== 0 && this.event.latitude !== 0) {
         return true
       }
 
@@ -191,16 +130,29 @@ export default {
       if (this.event.longitude === 0 && this.event.latitude === 0) {
         this.errors.push('Move marker to event location.')
       }
-      if (this.event.image.length === 0) {
-        this.errors.push('Add image.')
-      }
     },
     submitNewEvt () {
       this.separateTags()
       this.getImage()
       if (this.formValidation()) {
-        this.addEvent()
+        this.newEvent()
       } else alert('Completați câmpurile libere.')
+    },
+    async getAlertCodes () {
+      let response = await auth.getAlertCodes()
+      this.alerts = response
+    },
+    async newEvent () {
+      let event = {
+        name: this.alertName,
+        description: this.event.description,
+        longitude: this.event.longitude,
+        latitude: this.event.latitude,
+        image: this.event.image
+      }
+      let response = await auth.newEvent(event)
+      console.log(response)
+      return response
     }
   }
 }
