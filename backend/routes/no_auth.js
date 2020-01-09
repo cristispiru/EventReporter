@@ -277,7 +277,7 @@ router.get('/alert/codes', (req, res) => {
             alerts.forEach(function(alert) {
                 toSend.push({id: alert.get('id'), name: alert.get('name')})
             })
-            res.send(toSend)
+            res.send({"alerts": toSend})
 		})
 		.catch((reason) => {
             console.log('Getting alert codes list failed!')

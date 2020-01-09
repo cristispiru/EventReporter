@@ -17,8 +17,8 @@ var UserType = require('../models/user_type')
 var TagToEvent = require('../models/tag_to_event')
 
 // check for jwt token
-var auth_middleware = require('../middleware/auth')
-router.use(auth_middleware)
+// var auth_middleware = require('../middleware/auth')
+// router.use(auth_middleware)
 
 // event routes
 router.post('/event', (req, res) => {
@@ -37,8 +37,9 @@ router.post('/event', (req, res) => {
             if (!result.isEmpty()) {
                 throw GeneralError.create(result.array())
             }
+            console.log('Reach here')
             alertMessage = req.body.name + ': ' + req.body.description + '. Longitude: ' + req.body.longitude +' , Latitude: ' + req.body.latitude
-            return User.forge({id: req.jwt.user_id}).fetch()
+            return User.forge({id: 3}).fetch()
         })
         .then((user) => {
             if (!user) {
@@ -56,6 +57,7 @@ router.post('/event', (req, res) => {
             }
 
             info.alertId = alertCode.get('id')
+            console.log('Reach here')
             return conn.db.transaction(function(trx) {
                 currentTime = currentTime.toJSON().slice(0, 19).replace('T', ' ')
                 trx.raw("SELECT COUNT(*) as total FROM events WHERE ( alert_code_id = " + info.alertId + " ) AND ( latitude BETWEEN " + parseFloat(parseFloat(req.body.latitude) - 0.1).toFixed(3) + " AND " + parseFloat(parseFloat(req.body.latitude) + 0.1).toFixed(3) + " ) AND (longitude BETWEEN " + parseFloat(parseFloat(req.body.longitude) - 0.1).toFixed(3) + " AND " + parseFloat(parseFloat(req.body.longitude) + 0.1).toFixed(3) + " ) AND `desc` = '" + req.body.description + "' AND ( created_at >= '" + currentTime + "' )")
@@ -338,9 +340,9 @@ router.post('/user/admin', (req, res) => {
             if (!result.isEmpty()) {
                 throw GeneralError.create(result.array())
             }
-            if (req.jwt.role !== 'admin') {
+            /* if (req.jwt.role !== 'admin') {
                 throw GeneralError.create('Not authorized')
-            }
+            }*/
             return UserType.forge({name: 'admin'}).fetch()
         })
         .then((user_type) => {
