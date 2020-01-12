@@ -27,7 +27,7 @@
 
 <script>
 import L from 'leaflet'
-import API from '@/api'
+import auth from '@/services/auth.service.js'
 
 export default {
   name: 'Map',
@@ -42,7 +42,7 @@ export default {
   },
   mounted () {
     this.initMap()
-    this.getAlerts()
+    this.getAlertCodes()
     this.getEvents()
   },
   methods: {
@@ -69,7 +69,7 @@ export default {
         var maxLat = bounds._northEast.lat
         var minLon = bounds._southWest.lng
         var maxLon = bounds._northEast.lng
-        thisTmp.getEventsNearby(minLat, maxLat, minLon, maxLon)
+        thisTmp.getEventsNearby(minLon, maxLon, minLat, maxLat)
       })
 
       this.map.on('zoomend', function (myMap) {
@@ -78,7 +78,7 @@ export default {
         var maxLat = bounds._northEast.lat
         var minLon = bounds._southWest.lng
         var maxLon = bounds._northEast.lng
-        thisTmp.getEventsNearby(minLat, maxLat, minLon, maxLon)
+        thisTmp.getEventsNearby(minLon, maxLon, minLat, maxLat)
       })
     },
     initLayers () {
@@ -111,54 +111,25 @@ export default {
         })
       })
     },
-    getEvents () {
-      API.GetEvents()
-        .then(response => {
-          var i
-          this.events = []
-          for (i = 0; i < response.list.length; i++) {
-            response.list[i].active = false
-            this.events.push(response.list[i])
-          }
-          this.initLayers()
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    getEventsNearby (minLat, maxLat, minLon, maxLon) {
-      API.GetEventsNearby(minLat, maxLat, minLon, maxLon)
-        .then(response => {
-          var i
-          this.events = []
-          for (i = 0; i < response.list.length; i++) {
-            response.list[i].active = false
-            this.events.push(response.list[i])
-          }
-          this.initLayers()
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
-    getAlerts () {
-      API.GetAlerts()
-        .then(response => {
-          var i
-          for (i = 0; i < response.length; i++) {
-            response[i].active = true
-            this.alerts.push(response[i])
-          }
-        })
-        .catch(response => {
-          console.log(response)
-        })
-    },
     splitDate (date) {
       var year = date.split('T')[0]
       var time = date.split('T')[1].split('Z')[0].split('.')[0]
       var response = year + ' ' + time
       return response
+    },
+    async getAlertCodes () {
+      let response = await auth.getAlertCodes()
+      this.alerts = response
+    },
+    async getEvents () {
+      let response = await auth.getEvents()
+      this.events = response.list
+      this.initLayers()
+    },
+    async getEventsNearby (minLon, maxLon, minLat, maxLat) {
+      let response = await auth.getEventsNearby()
+      this.events = response.list
+      this.initLayers()
     }
   }
 }
@@ -178,7 +149,7 @@ export default {
   margin: 50px;
 }
 
-/deep/ .event-info {
+.event-info {
   width: 200px;
   height: 200px;
   display: block;

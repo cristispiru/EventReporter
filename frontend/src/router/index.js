@@ -1,23 +1,47 @@
 import Vue from 'vue'
-import Router from 'vue-router'
-import Map from '@/components/Map'
-import NewEvt from '@/components/NewEvt'
+import Home from '../views/Home.vue'
+import Login from '../views/Login.vue'
+import SignUp from '../views/SignUp.vue'
+import VueRouter from 'vue-router'
+// import store from '../store/index'
 
-Vue.use(Router)
+Vue.use(VueRouter)
 
-export default new Router({
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/signup',
+    name: 'SignUp',
+    component: SignUp
+  }
+]
+
+const router = new VueRouter({
   mode: 'history',
   base: process.env.VUE_APP_BASE_URL,
-  routes: [
-    {
-      path: '/',
-      name: 'Map',
-      component: Map
-    },
-    {
-      path: '/new',
-      name: 'NewEvt',
-      component: NewEvt
-    }
-  ]
+  routes
 })
+
+// router.beforeEach((to, from, next) => {
+//   if (to.matched.some(record => record.meta.requiresAuth)) {
+//     if (store.getters.isLoggedIn === '') {
+//       console.log('fdfdsfdsfdsfds')
+//       console.log(store.getters.isLoggedIn)
+//       next({
+//         name: 'Login'
+//       })
+//     } else next({ name: 'Home' })
+//   } else next()
+// })
+
+export default router
