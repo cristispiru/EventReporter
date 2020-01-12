@@ -1,10 +1,10 @@
 <template>
   <div class="home">
     <b-navbar toggleable="lg" type="dark" variant="dark">
-      <b-navbar-brand href="#">Event Reporter</b-navbar-brand>
+      <b-navbar-brand href="/">Event Reporter</b-navbar-brand>
       <b-navbar-nav>
         <b-button
-          v-if="isLoggedIn !== ''"
+          v-if="isLoggedIn !== '' && componentSwitch == true"
           variant="dark"
           size="sm"
           class="my-2 my-sm-0"
