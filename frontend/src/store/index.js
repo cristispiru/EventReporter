@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-// import axios from 'axios'
+import axios from 'axios'
 import createPersistedState from 'vuex-persistedstate'
 
 Vue.use(Vuex)
@@ -21,6 +21,7 @@ export default new Vuex.Store({
   actions: {
     loginOrSignUp: ({ commit, dispatch }, jwt) => {
       commit('SET_JWT_TOKEN', jwt.token)
+      axios.defaults.headers.common['Authorization'] = `${jwt.token}`
     },
     logout: ({ commit }) => {
       commit('RESET_JWT_TOKEN', '')
