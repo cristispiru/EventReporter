@@ -69,9 +69,6 @@ router.post('/event', (req, res) => {
                 currentTime = currentTime.toJSON().slice(0, 19).replace('T', ' ')
                 trx.raw("SELECT COUNT(*) as total FROM events WHERE ( alert_code_id = " + info.alertId + " ) AND ( latitude BETWEEN " + parseFloat(parseFloat(req.body.latitude) - 0.1).toFixed(3) + " AND " + parseFloat(parseFloat(req.body.latitude) + 0.1).toFixed(3) + " ) AND (longitude BETWEEN " + parseFloat(parseFloat(req.body.longitude) - 0.1).toFixed(3) + " AND " + parseFloat(parseFloat(req.body.longitude) + 0.1).toFixed(3) + " ) AND `desc` = '" + req.body.description + "' AND ( created_at >= '" + currentTime + "' )")
                     .then(totalEvents => {
-                        console.log('Total Events')
-                        console.log(totalEvents)
-                        console.log(totalEvents[0][0])
                         if (totalEvents[0][0].total > 0) {
                             status = 0
                             message = 'A similar event has already been notified in the area'
