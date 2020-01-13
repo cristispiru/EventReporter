@@ -85,7 +85,7 @@ export default {
       this.markerLayer.clearLayers()
       this.events.forEach((event) => {
         var coords = [event.latitude, event.longitude]
-        var info = 'ID: ' + event.id + '<br> Description: ' + event.description + '<br> Latitude: ' + event.latitude + '<br> Longitude: ' + event.longitude + '<br> Alert: ' + event.alert_code + '<br> Time: ' + this.splitDate(event.timestamp) + '<br> <img class="event-info" src="' + event.image + '" />'
+        var info = 'ID: ' + event.id + '<br> Description: ' + event.description + '<br> Latitude: ' + event.latitude + '<br> Longitude: ' + event.longitude + '<br> Alert: ' + event.alert_code + '<br> Time: ' + this.splitDate(event.timestamp) + '<br> <img width="100%" src="' + event.image + '" />'
         event.active = false
         event.leafletObject = L.marker(coords).bindPopup(info).openPopup()
       })
