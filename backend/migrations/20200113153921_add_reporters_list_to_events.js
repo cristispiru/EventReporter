@@ -1,7 +1,7 @@
 
 exports.up = function(knex, Promise) {
     return knex.schema.alterTable('events', function(table){
-        table.json('reporters_list')
+        table.text('reporters_list')
     })
   };
   
