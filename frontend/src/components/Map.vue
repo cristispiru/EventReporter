@@ -65,19 +65,19 @@ export default {
       var thisTmp = this
       this.map.on('dragend', function (myMap) {
         var bounds = thisTmp.map.getBounds()
-        var minLat = bounds._southWest.lat
-        var maxLat = bounds._northEast.lat
-        var minLon = bounds._southWest.lng
-        var maxLon = bounds._northEast.lng
+        var minLat = bounds._southWest.lat.toFixed(2)
+        var maxLat = bounds._northEast.lat.toFixed(2)
+        var minLon = bounds._southWest.lng.toFixed(2)
+        var maxLon = bounds._northEast.lng.toFixed(2)
         thisTmp.getEventsNearby(minLon, maxLon, minLat, maxLat)
       })
 
       this.map.on('zoomend', function (myMap) {
         var bounds = thisTmp.map.getBounds()
-        var minLat = bounds._southWest.lat
-        var maxLat = bounds._northEast.lat
-        var minLon = bounds._southWest.lng
-        var maxLon = bounds._northEast.lng
+        var minLat = bounds._southWest.lat.toFixed(2)
+        var maxLat = bounds._northEast.lat.toFixed(2)
+        var minLon = bounds._southWest.lng.toFixed(2)
+        var maxLon = bounds._northEast.lng.toFixed(2)
         thisTmp.getEventsNearby(minLon, maxLon, minLat, maxLat)
       })
     },
@@ -86,6 +86,7 @@ export default {
       this.events.forEach((event) => {
         var coords = [event.latitude, event.longitude]
         var info = 'ID: ' + event.id + '<br> Description: ' + event.description + '<br> Latitude: ' + event.latitude + '<br> Longitude: ' + event.longitude + '<br> Alert: ' + event.alert_code + '<br> Time: ' + this.splitDate(event.timestamp) + '<br> <img class="event-info" src="' + event.image + '" />'
+        event.active = false
         event.leafletObject = L.marker(coords).bindPopup(info).openPopup()
       })
       this.layerChanger()
@@ -127,7 +128,7 @@ export default {
       this.initLayers()
     },
     async getEventsNearby (minLon, maxLon, minLat, maxLat) {
-      let response = await auth.getEventsNearby()
+      let response = await auth.getEventsNearby(minLon, maxLon, minLat, maxLat)
       this.events = response.list
       this.initLayers()
     }
