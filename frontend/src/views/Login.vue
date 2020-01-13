@@ -60,9 +60,8 @@ export default {
           password: this.password
         }
         let response = await auth.login(simpleCredentials)
-        let msg = response.msg
-        let token = response.token
-        if (msg === 'Login successful') {
+        if (response.msg === 'Login successful') {
+          let token = response.token
           this.$store.dispatch('loginOrSignUp', { token })
           this.$router.push({ name: 'Home' })
         } else {

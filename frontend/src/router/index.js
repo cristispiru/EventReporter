@@ -32,16 +32,4 @@ const router = new VueRouter({
   routes
 })
 
-// router.beforeEach((to, from, next) => {
-//   if (to.matched.some(record => record.meta.requiresAuth)) {
-//     if (store.getters.isLoggedIn === '') {
-//       console.log('fdfdsfdsfdsfds')
-//       console.log(store.getters.isLoggedIn)
-//       next({
-//         name: 'Login'
-//       })
-//     } else next({ name: 'Home' })
-//   } else next()
-// })
-
 export default router

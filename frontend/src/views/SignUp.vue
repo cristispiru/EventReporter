@@ -88,9 +88,8 @@ export default {
           password: this.password,
           number: this.number
         }
-        console.log(complexCredentials)
         let response = await auth.signUp(complexCredentials)
-        if (response.errors === undefined && response.errors.length > 0) {
+        if (response.msg === 'User added') {
           let token = response.token
           this.$store.dispatch('loginOrSignUp', { token })
           this.$router.push({ name: 'Home' })

@@ -31,7 +31,7 @@
       </b-navbar-nav>
     </b-navbar>
     <Map v-if="componentSwitch" />
-    <NewEvt v-else/>
+    <NewEvt :componentSwitch.sync="componentSwitch" v-else/>
     <b-modal
       id="modal-1"
       title="Report an event"

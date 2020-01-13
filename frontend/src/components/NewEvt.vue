@@ -6,13 +6,13 @@
       </div>
       <form class="col-lg-4" id="newEvtForm">
         <div class="form-group">
-          <label for="exampleFormControlSelect1">Tip Eveniment:</label>
+          <label for="exampleFormControlSelect1">Event type:</label>
           <select class="form-control" id="ChooseEvt" v-model="alertName">
             <option v-for="alert in alerts" :key="alert.id">{{alert.name}}</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="Description">Descriere:</label>
+          <label for="Description">Description:</label>
           <textarea class="form-control" id="Description" rows="3" v-model="event.description"></textarea>
         </div>
         <div class="form-group">
@@ -20,7 +20,7 @@
           <textarea class="form-control" id="Tags" rows="3" v-model="tagString"></textarea>
         </div>
         <div class="form-group">
-            <label for="image">Imagine</label>
+            <label for="image">Image</label>
             <input type="file" class="form-control-file" id="Image" accept="image/*" @change="getImage">
         </div>
         <div class="form-group">
@@ -44,6 +44,7 @@ import auth from '@/services/auth.service.js'
 
 export default {
   name: 'NewEvt',
+  props: ['componentSwitch'],
   data () {
     return {
       map: null,
@@ -118,9 +119,7 @@ export default {
       if (this.alertName && this.event.description && this.event.longitude !== 0 && this.event.latitude !== 0) {
         return true
       }
-
       this.errors = []
-
       if (!this.alertName) {
         this.errors.push('Choose alert type.')
       }
@@ -136,7 +135,7 @@ export default {
       this.getImage()
       if (this.formValidation()) {
         this.newEvent()
-      } else alert('Completați câmpurile libere.')
+      } else alert('Complete required fields.')
     },
     async getAlertCodes () {
       let response = await auth.getAlertCodes()
@@ -152,7 +151,9 @@ export default {
       }
       let response = await auth.newEvent(event)
       console.log(response)
-      return response
+      if (response.status !== undefined && response.status === 1) {
+        this.$emit('update:componentSwitch', true)
+      }
     }
   }
 }
