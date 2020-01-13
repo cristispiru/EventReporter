@@ -2,7 +2,8 @@ var express = require('express')
 var router = express.Router()
 
 var AWS = require('aws-sdk')
-AWS.config.update({region: 'us-west-2'})
+AWS.config.update({region: 'us-west-2', accessKeyId: process.env.S3_ACCESS_KEY, secretAccessKey: process.env.S3_SECRET_KEY})
+var sns = new AWS.SNS({ apiVersion: '2010-03-31' })
 var conn = require('../connections/db-connect')
 var path = require('path')
 
@@ -26,6 +27,7 @@ router.post('/event', (req, res) => {
     var currentTime = new Date()
     var status = 1
     var message
+    var adminTypeId
     currentTime.setHours(currentTime.getHours() - 3)
     req.checkBody('name', 'name param is missing').notEmpty()
     req.checkBody('description', 'description param is missing').notEmpty()
@@ -38,6 +40,13 @@ router.post('/event', (req, res) => {
                 throw GeneralError.create(result.array())
             }
             alertMessage = req.body.name + ': ' + req.body.description + '. Longitude: ' + req.body.longitude +' , Latitude: ' + req.body.latitude
+            return UserType.forge({name: 'admin'}).fetch()
+        })
+        .then((type) => {
+            if (!type) {
+                throw GeneralError.create('The user type does not exist')
+            }
+            adminTypeId = type.get('id')
             return User.forge({id: req.jwt.user_id}).fetch()
         })
         .then((user) => {
@@ -82,6 +91,21 @@ router.post('/event', (req, res) => {
                         res.send()
                     })
             })
+        })
+        .then((result) => {
+            if (status === 0) {
+                return new Promise()
+            }
+            return User.where({type_id: adminTypeId}).fetch()
+        })
+        .then((user) => {
+            if (status === 0) {
+                return new Promise()
+            }
+            return sns.publish({
+                Message: 'New Event Reported. Type: ' + req.body.name + '. Description: ' + req.body.description,
+                PhoneNumber: user.get('phone')
+            }).promise()
         })
         .then((result) => {
             if (status === 0) {
@@ -130,6 +154,56 @@ router.post('/event/:event_id/tag', (req, res) => {
         })
         .catch((reason) => {
             console.log('Adding tag to event failed!')
+            console.log(reason)
+            if (reason.send_message) {
+                res.send({errors: reason.message})
+            } else {
+                res.send({'errors': [{'msg': reason}] })
+            }
+        })
+})
+
+router.patch('/event/:event_id/report', (req, res) => {
+    let userUpdate
+    Event.forge({id: req.params.event_id}).fetch({withRelated: ['alert', 'user']})
+        .then((event) => {
+            if (!event) {
+                throw GeneralError.create('No event with that id')
+            }
+            let reporters = JSON.parse(event.get('reporters_list'))
+            if (reporters) {
+                reporters.list.forEach(function(id) {
+                    if (id === req.jwt.user_id) {
+                        throw GeneralError.create('User already reported this event')
+                    }
+                })
+            }
+            userUpdate = event.get('reported_count') === 4
+            const reportedCount = event.get('reported_count') + 1
+            if (reporters) {
+                reporters.list.push(req.jwt.user_id)
+            } else {
+                reporters = {
+                    list: [req.jwt.user_id]
+                }
+            }
+            return event.save({reported_count: reportedCount, reporters_list: JSON.stringify(reporters)}, {method: 'update'})
+        })
+        .then((event) => {
+            if (!event) {
+                throw GeneralError.create('Event not updated')
+            }
+            return User.forge({id: event.get('user_id')}).fetch()
+        })
+        .then((user) => {
+            const reportedCount = user.get('reported_count') + 1
+            if (userUpdate) {
+                user.save({reported_count: reportedCount}, {method: 'update'})
+            }
+            res.send({msg: 'Event reported'})
+        })
+        .catch((reason) => {
+            console.log('Reporting event failed!')
             console.log(reason)
             if (reason.send_message) {
                 res.send({errors: reason.message})

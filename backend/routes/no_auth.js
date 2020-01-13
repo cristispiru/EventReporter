@@ -89,41 +89,6 @@ router.get('/event/:event_id', (req, res) => {
             }
         })
 })
-
-router.patch('/event/:event_id/report', (req, res) => {
-    let userUpdate
-    Event.forge({id: req.params.event_id}).fetch({withRelated: ['alert', 'user']})
-        .then((event) => {
-            if (!event) {
-                throw GeneralError.create('No event with that id')
-            }
-            userUpdate = event.get('reported_count') === 4
-            const reportedCount = event.get('reported_count') + 1
-            return event.save({reported_count: reportedCount}, {method: 'update'})
-        })
-        .then((event) => {
-            if (!event) {
-                throw GeneralError.create('Event not updated')
-            }
-            return User.forge({id: event.get('user_id')}).fetch()
-        })
-        .then((user) => {
-            const reportedCount = user.get('reported_count') + 1
-            if (userUpdate) {
-                user.save({reported_count: reportedCount}, {method: 'update'})
-            }
-            res.send({msg: 'Event reported'})
-        })
-        .catch((reason) => {
-            console.log('Reporting event failed!')
-            console.log(reason)
-            if (reason.send_message) {
-                res.send({errors: reason.message})
-            } else {
-                res.send({'errors': [{'msg': reason}] })
-            }
-        })
-})
 // event routes end
 
 // user routes
